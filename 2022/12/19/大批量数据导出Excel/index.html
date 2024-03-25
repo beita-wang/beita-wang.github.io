@@ -1,0 +1,207 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>大批量数据导出Excel | Beita</title><meta name="author" content="Beita"><meta name="copyright" content="Beita"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="起因：系统每个月都会有几次CPU飙高，表现:系统缓慢、Tomcat假死、出现请求超时等。 后来在系统中加入log,定位问题发现是由于系统一次性导出大量数据，会导致堆内存高使用量且频繁GC。从而占用大量系统内存资源。导致tomcat卡死，cpu飙高，影响其它使用系统的用户。即使导出成功，用户等待的时间也很长。  定位问题：第一种方式top 找到占用cpu的java pidps -mp pid -o">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大批量数据导出Excel">
+<meta property="og:url" content="http://example.com/2022/12/19/%E5%A4%A7%E6%89%B9%E9%87%8F%E6%95%B0%E6%8D%AE%E5%AF%BC%E5%87%BAExcel/index.html">
+<meta property="og:site_name" content="Beita">
+<meta property="og:description" content="起因：系统每个月都会有几次CPU飙高，表现:系统缓慢、Tomcat假死、出现请求超时等。 后来在系统中加入log,定位问题发现是由于系统一次性导出大量数据，会导致堆内存高使用量且频繁GC。从而占用大量系统内存资源。导致tomcat卡死，cpu飙高，影响其它使用系统的用户。即使导出成功，用户等待的时间也很长。  定位问题：第一种方式top 找到占用cpu的java pidps -mp pid -o">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png">
+<meta property="article:published_time" content="2022-12-19T03:26:31.000Z">
+<meta property="article:modified_time" content="2024-03-25T03:35:38.684Z">
+<meta property="article:author" content="Beita">
+<meta property="article:tag" content="导出数据">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2022/12/19/%E5%A4%A7%E6%89%B9%E9%87%8F%E6%95%B0%E6%8D%AE%E5%AF%BC%E5%87%BAExcel/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '大批量数据导出Excel',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-03-25 11:35:38'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/image/banner.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Beita"><span class="site-name">Beita</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">大批量数据导出Excel</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2022-12-19T03:26:31.000Z" title="发表于 2022-12-19 11:26:31">2022-12-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/">线上问题排查</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/%E5%A4%A7%E6%89%B9%E9%87%8F%E6%95%B0%E6%8D%AE%E5%AF%BC%E5%87%BA/">大批量数据导出</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="大批量数据导出Excel"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><meta name="referrer" content="no-referrer" />
+起因：系统每个月都会有几次CPU飙高，表现:系统缓慢、Tomcat假死、出现请求超时等。
+后来在系统中加入log,定位问题发现是由于系统一次性导出大量数据，会导致堆内存高使用量且频繁GC。从而占用大量系统内存资源。导致tomcat卡死，cpu飙高，影响其它使用系统的用户。即使导出成功，用户等待的时间也很长。
+
+<p>定位问题：<br>第一种方式<br>top 找到占用cpu的java pid<br>ps -mp pid -o THREAD,tid,time 找到进程下的线程占用cpu的情况<br>printf “%x\n” tid   然后把这个id转为16进制的数字<br>jstack pid | grep tid &gt;&gt;problem.txt 保存位置。</p>
+<p>第二种方式:阿里神器<br><a target="_blank" rel="noopener" href="https://arthas.gitee.io/doc/quick-start.html">https://arthas.gitee.io/doc/quick-start.html</a></p>
+<p>下载并启动<br>curl -O <a target="_blank" rel="noopener" href="https://arthas.aliyun.com/arthas-boot.jar">https://arthas.aliyun.com/arthas-boot.jar</a><br>java -jar arthas-boot.jar</p>
+<p>输入dashboard，按回车&#x2F;enter，展示当前进程的信息<br><img src="https://cdn.nlark.com/yuque/0/2022/png/34402152/1671420507718-b5ced267-dffc-449b-b8f1-9a0963aab33b.png#averageHue=%23151413&clientId=u150572b7-5c2d-4&from=paste&height=532&id=u6832ac88&originHeight=532&originWidth=1217&originalType=binary&ratio=1&rotation=0&showTitle=false&size=67882&status=done&style=none&taskId=uda62cf8e-e625-42e5-938a-5c88be3d67c&title=&width=1217" alt="image.png"></p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/34402152/1671420546774-a11757c9-c17b-4a17-a262-36e8b59b8aac.png#averageHue=%23222120&clientId=u150572b7-5c2d-4&from=paste&height=427&id=u0fd897a2&originHeight=427&originWidth=865&originalType=binary&ratio=1&rotation=0&showTitle=false&size=192878&status=done&style=none&taskId=u513419e2-1512-4cf7-9553-050a4f6a152&title=&width=865" alt="image.png"><br>执行导出任务前可以看到两台server cpu占用少，而且老年代gc次数没有那么多。</p>
+<p>接下来导出15W的数据量，持续观察cpu与gc情况<br>等待了4分钟，对比没导出数据之前我们发现老年代持续被打满，gc次数上升。cpu 也持续飙升。<br><img src="https://cdn.nlark.com/yuque/0/2022/png/34402152/1671420555063-5191cee8-50b5-43ba-8b2c-3fe3a62fa78c.png#averageHue=%2322201f&clientId=u150572b7-5c2d-4&from=paste&height=421&id=u775f9c1c&originHeight=421&originWidth=865&originalType=binary&ratio=1&rotation=0&showTitle=false&size=187823&status=done&style=none&taskId=u44693585-eac2-4acf-9ca6-6e2b7191df4&title=&width=865" alt="image.png"><br>就可以猜测是有大对象持续被创建，导致老年代gc次数短时间上升。通过thread –n 3 展示当前最忙的前 3 个线程并打印堆栈</p>
+<p>heapdump  &#x2F;tmp&#x2F;dump.hprof  dump 到指定文件<br>先用VisualVM 解析dump文件<br><img src="https://cdn.nlark.com/yuque/0/2022/png/34402152/1671420578246-d6aeda5b-898b-4438-98b6-119d6f57d21c.png#averageHue=%23f6f6f6&clientId=u150572b7-5c2d-4&from=paste&height=434&id=u3937bd35&originHeight=434&originWidth=865&originalType=binary&ratio=1&rotation=0&showTitle=false&size=78722&status=done&style=none&taskId=u7402cc50-9912-4b69-8afb-cbec4a5ed50&title=&width=865" alt="image.png"><br><img src="https://cdn.nlark.com/yuque/0/2022/png/34402152/1671420585662-22710724-2d64-4fcc-b82c-b09b8b380683.png#averageHue=%23f2efef&clientId=u150572b7-5c2d-4&from=paste&height=425&id=u5aa43050&originHeight=425&originWidth=865&originalType=binary&ratio=1&rotation=0&showTitle=false&size=115658&status=done&style=none&taskId=uac3bedd7-4852-46a4-aa1c-c9b6246d4ee&title=&width=865" alt="image.png"><br>再用mat进行分析。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/34402152/1671420597294-1eb51abe-b890-4fe4-a5b5-1523331f2ef2.png#averageHue=%23faf9f4&clientId=u150572b7-5c2d-4&from=paste&height=546&id=ufefb4bca&originHeight=546&originWidth=865&originalType=binary&ratio=1&rotation=0&showTitle=false&size=104590&status=done&style=none&taskId=uefad119d-a981-40d7-969e-1ef33324644&title=&width=865" alt="image.png"><br><img src="https://cdn.nlark.com/yuque/0/2022/png/34402152/1671420607377-d3ebfc31-114f-48e3-a28f-e336accac716.png#averageHue=%23f7f6f1&clientId=u150572b7-5c2d-4&from=paste&height=539&id=u72fa7560&originHeight=539&originWidth=865&originalType=binary&ratio=1&rotation=0&showTitle=false&size=201748&status=done&style=none&taskId=ue38b0031-8d82-45ec-9994-b476ab22c77&title=&width=865" alt="image.png"></p>
+<p>分析heapdump文件，发现主要被log4j2的RingBuffer占用。我们就可以确定问题的原因了。</p>
+<p>log4j2为提高吞吐速率采用循环队列缓存将要打印的日志，随后采用异步线程“消费”队列内容。当高并发大量日志打印的过程中，会导致内存占用过高。</p>
+<p>解决办法:</p>
+<ol>
+<li><pre><code> 使用同步模式
+</code></pre>
+</li>
+<li><pre><code> 使用具有较短环缓冲区大小的异步模式。为此，我们必须使用下一个属性减少插槽数量。最小值为 128。为4096或者其他稍小的值，宁愿丢日志，也不愿意节点挂掉。参考官网进行属性配置。
+</code></pre>
+</li>
+</ol>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/34402152/1671420635393-08c2d2a7-68ef-4a4e-a52c-23c5dc15cc51.png#averageHue=%23f5f4f2&clientId=u150572b7-5c2d-4&from=paste&height=99&id=ud6dea664&originHeight=99&originWidth=865&originalType=binary&ratio=1&rotation=0&showTitle=false&size=66425&status=done&style=none&taskId=u8d795319-2eac-48c0-8dc2-97ef07fdc63&title=&width=865" alt="image.png"></p>
+<p>设置AsyncLoggerConfig.RingBufferSize的含义是把日志先暂存在内存中，等到一定数值（你设置的209715），就体刷到硬盘上去。<br>因为暂存的日志占用过多内存，jvm发现内存不够用，触发gc，gc的过程是很耗cpu资源的。</p>
+<p>AsyncLoggerConfig.RingBufferSize的默认值为128*1024。而你设置的值是默认值的16倍。</p>
+<p>org.apache.logging.log4j.core.async.DisruptorUtil#calculateRingBufferSize<br>经过设置后，内存占用明显减少。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/34402152/1671420823396-53812b24-057e-4e92-b780-dddc9061fa19.png#averageHue=%23e4c47f&clientId=u323b99c4-1bac-4&from=paste&height=751&id=u577c0096&originHeight=751&originWidth=1475&originalType=binary&ratio=1&rotation=0&showTitle=false&size=113210&status=done&style=none&taskId=u2909d8fe-70db-4ed9-9ada-f2737855969&title=&width=1475" alt="image.png"><br>接下来继续分析Mat，可以看到内存占用情况，RecordRow是一个封装的List，大对象并没有被回收。</p>
+<p>分析代码后发现以下问题:</p>
+<ol>
+<li>数据库一次查询大量数据放入到一个List中，数据量一旦到达一定程度，就会出现OOM。</li>
+<li>List未设置初始容量，导致数据量一大就会频繁的进行扩容。</li>
+<li>对数据做处理的过程中频繁创建大量对象。对象被引用无法被JVM回收，导致频繁Full GC。</li>
+<li>数据处理的过程中要去除html标签，导出的栏位有大量html文本，比较耗CPU和内存。</li>
+<li>操作excel的工具用的是poi，使用的是XSSFWorkbook的Excel Sheet导出。占用大量内存，且导出条数上有限制。</li>
+</ol>
+<p>优化方案思路：<br>因为我们系统用户为了方便分析数据，所以所有的数据都放在同一个sheet中。这边就不针对sheet来讨论。<br>总体思路如下：<br>少量数据采用单线程导出。数据量大了采用多线程分段(分页的思想)查询并写入数据，将导出的数据进行分割，设置初始容量，每一个线程导出部分数据到同一个excel，同时把大对象赋值为空，显式调用垃圾回收器，及时回收内存。<br>大量数据导出，查询方案查询数据会很慢，可以把导出数据的整体步骤，做异步。导出完了之后把excel以邮件的方式发送给用户，不用一直在界面等待。 数据量少的话可以直接导出给用户。</p>
+<ol>
+<li>参考分页的思想，分段查询数据。</li>
+<li>List设置初始容量，避免频繁扩容。</li>
+<li>对数据做处理的过程中重复创建对象，建议使用Clone提高对象创建的效率。List中的数据处理完成之后，就清空，避免长时间占用。</li>
+<li>数据处理的过程中要去除html标签，导出的栏位有大量html文本，建议去除这个栏位，因为没人会分析大文本吧，Excel中看的不难受吗！如果实在有此类需求，可以使用Jsoup等去处理。</li>
+<li>使用SXSSFWorkbook来生成海量excel数据文件，用硬盘空间换内存（就像hashmap用空间换时间一样）。 SXSSFWorkbook专门处理大数据，对于大型excel的创建且不会内存溢出</li>
+</ol>
+<p>以下代码可供参考：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ExecutorConfig</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">String</span> <span class="variable">namePrefix</span> <span class="operator">=</span> <span class="string">&quot;async-service-export-&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">queueCapacity</span> <span class="operator">=</span> <span class="number">1000</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;taskExecutor&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> ThreadPoolTaskExecutor <span class="title function_">asyncServiceExecutor</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">ThreadPoolTaskExecutor</span> <span class="variable">threadPoolExecutor</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ThreadPoolTaskExecutor</span>();</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> <span class="variable">availableProcessors</span> <span class="operator">=</span> Runtime.getRuntime().availableProcessors();</span><br><span class="line">        <span class="type">int</span> <span class="variable">corePoolSize</span> <span class="operator">=</span> Math.max(<span class="number">8</span>, availableProcessors * <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//配置核心线程数</span></span><br><span class="line">        threadPoolExecutor.setCorePoolSize(corePoolSize);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//配置最大线程数</span></span><br><span class="line">        threadPoolExecutor.setMaxPoolSize(corePoolSize);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//配置线程池中的线程名称前缀</span></span><br><span class="line">        threadPoolExecutor.setThreadNamePrefix(namePrefix);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//设置队列的大小</span></span><br><span class="line">        threadPoolExecutor.setQueueCapacity(queueCapacity);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//拒绝策略</span></span><br><span class="line">        threadPoolExecutor.setRejectedExecutionHandler(<span class="keyword">new</span> <span class="title class_">ThreadPoolExecutor</span>.CallerRunsPolicy());</span><br><span class="line"></span><br><span class="line">        <span class="comment">//初始化</span></span><br><span class="line">        threadPoolExecutor.initialize();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> threadPoolExecutor;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">      <span class="comment">// 导出Excel对象</span></span><br><span class="line"><span class="type">SXSSFWorkbook</span> <span class="variable">workbook</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SXSSFWorkbook</span>(<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//多线程，分段处理数据</span></span><br><span class="line"><span class="type">ThreadPoolTaskExecutor</span> <span class="variable">threadPoolExecutor</span> <span class="operator">=</span> SpringUtil.getApplicationContext().getBean(ThreadPoolTaskExecutor.class);</span><br><span class="line"><span class="type">int</span> <span class="variable">corePoolSize</span> <span class="operator">=</span> threadPoolExecutor.getCorePoolSize();</span><br><span class="line"></span><br><span class="line"><span class="comment">//每个列表中有多少数据</span></span><br><span class="line"><span class="type">int</span> <span class="variable">threadRecordSize</span> <span class="operator">=</span> fieldRecord.size()/corePoolSize;</span><br><span class="line">threadRecordSize = fieldRecord.size()%corePoolSize == <span class="number">0</span> ? threadRecordSize :++threadRecordSize;</span><br><span class="line"></span><br><span class="line">List&lt;CompletableFuture&lt;Void&gt;&gt; list = Lists.newArrayList();</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">	<span class="comment">//分段写入</span></span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt;= corePoolSize; i++) &#123;</span><br><span class="line">		<span class="type">ExportVo</span> <span class="variable">exportVo</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ExportVo</span>();</span><br><span class="line">		exportVo.setFiledName(filedName);</span><br><span class="line">		exportVo.setFiledTitle(filedTitle);</span><br><span class="line">		exportVo.setListName(listName);</span><br><span class="line">		exportVo.setFieldType(fieldType);</span><br><span class="line">		<span class="keyword">if</span> (i == <span class="number">1</span>) &#123;</span><br><span class="line">			exportVo.setStart(<span class="number">0</span>);</span><br><span class="line">			exportVo.setEnd(threadRecordSize);</span><br><span class="line">			exportVo.setRecords(fieldRecord.subList(exportVo.getStart(), exportVo.getEnd()));</span><br><span class="line">			list.add(AsyncExport(exportVo,workbook,threadPoolExecutor));</span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span> (i == corePoolSize) &#123;</span><br><span class="line">			exportVo.setStart(threadRecordSize * (i - <span class="number">1</span>));</span><br><span class="line">			exportVo.setEnd(fieldRecord.size());</span><br><span class="line">			exportVo.setRecords(fieldRecord.subList(exportVo.getStart(), exportVo.getEnd()));</span><br><span class="line">			list.add(AsyncExport(exportVo,workbook,threadPoolExecutor));</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			exportVo.setStart(threadRecordSize * (i - <span class="number">1</span>));</span><br><span class="line">			exportVo.setEnd(threadRecordSize * i);</span><br><span class="line">			exportVo.setRecords(fieldRecord.subList(exportVo.getStart(), exportVo.getEnd()));</span><br><span class="line">			list.add(AsyncExport(exportVo,workbook,threadPoolExecutor));</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	Thread.sleep(<span class="number">100</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">	<span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(e);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">getSyncResult(list);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> CompletableFuture&lt;Void&gt; <span class="title function_">AsyncExport</span><span class="params">(ExportVo exportVo,</span></span><br><span class="line"><span class="params">												SXSSFWorkbook workbook,</span></span><br><span class="line"><span class="params">												ThreadPoolTaskExecutor threadPoolExecutor)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> CompletableFuture.runAsync(()-&gt;&#123;</span><br><span class="line">			<span class="type">Records</span> <span class="variable">exportRecord</span> <span class="operator">=</span>  <span class="keyword">new</span> <span class="title class_">Records</span>();</span><br><span class="line">			List&lt;RecordRow&gt; fieldRecord = exportVo.getRecords();</span><br><span class="line">			List&lt;String&gt; filedName = exportVo.getFiledName();</span><br><span class="line">			Map&lt;String, String&gt; fieldType = exportVo.getFieldType();</span><br><span class="line">			<span class="keyword">for</span> (<span class="type">int</span> i=<span class="number">0</span>; i &lt; fieldRecord.size(); i++)</span><br><span class="line">			&#123;</span><br><span class="line">				<span class="type">RecordRow</span> <span class="variable">rowItem</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RecordRow</span>();</span><br><span class="line">				<span class="keyword">for</span>(String field : filedName)</span><br><span class="line">				&#123;</span><br><span class="line">					<span class="keyword">if</span>(Util.isNotEmptyString(fieldRecord.get(i).get(field +<span class="string">&quot;[NAME]&quot;</span>)))</span><br><span class="line">						rowItem.put(field, fieldRecord.get(i).get(field +<span class="string">&quot;[NAME]&quot;</span>));</span><br><span class="line">					<span class="keyword">else</span> <span class="keyword">if</span>(AttributeText.RICHTEXTBOX.equals(fieldType.get(field))) &#123;</span><br><span class="line">						rowItem.put(field, Util.convertHtml(Util.cast2StringWithDefault(fieldRecord.get(i).get(field))));</span><br><span class="line">					&#125;<span class="keyword">else</span> <span class="keyword">if</span>(AttributeText.TEXTBOX_DATETIME_READONLY.equals(fieldType.get(field))) &#123;</span><br><span class="line">						Date date;</span><br><span class="line">						<span class="keyword">try</span> &#123;</span><br><span class="line">							date = Util.stringtodate(Util.cast2StringWithDefault(fieldRecord.get(i).get(field)));</span><br><span class="line">							rowItem.put(field, date == <span class="literal">null</span> ? fieldRecord.get(i).get(field) : Util.datetostring(date));</span><br><span class="line">						&#125; <span class="keyword">catch</span> (CmsBusinessException e) &#123;</span><br><span class="line">							logger.warn(<span class="string">&quot;date fommat failed!&quot;</span>);</span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">else</span></span><br><span class="line">						rowItem.put(field, fieldRecord.get(i).get(field));</span><br><span class="line">				&#125;</span><br><span class="line">				exportRecord.add(rowItem);</span><br><span class="line">			&#125;</span><br><span class="line">			logger.info(<span class="string">&quot;data convert end!&quot;</span>);</span><br><span class="line"></span><br><span class="line">			logger.info(<span class="string">&quot;exportListInfoToExcel start!&quot;</span>);</span><br><span class="line">			exportListInfoToXlsxExcel(workbook, exportRecord, exportVo, exportVo.getStart()==<span class="number">0</span>);</span><br><span class="line">			logger.info(<span class="string">&quot;exportListInfoToExcel end!&quot;</span>);</span><br><span class="line"></span><br><span class="line">			exportRecord=<span class="literal">null</span>;</span><br><span class="line">			&#125;,threadPoolExecutor);</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Beita</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2022/12/19/%E5%A4%A7%E6%89%B9%E9%87%8F%E6%95%B0%E6%8D%AE%E5%AF%BC%E5%87%BAExcel/">http://example.com/2022/12/19/%E5%A4%A7%E6%89%B9%E9%87%8F%E6%95%B0%E6%8D%AE%E5%AF%BC%E5%87%BAExcel/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Beita</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%AF%BC%E5%87%BA%E6%95%B0%E6%8D%AE/">导出数据</a></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/01/25/JSON-Schema%E6%A1%86%E6%9E%B6%E5%AF%B9%E6%AF%94/" title="JSON Schema框架对比"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">JSON Schema框架对比</div></div></a></div><div class="next-post pull-right"><a href="/2021/06/26/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E6%A6%82%E8%BF%B0/" title="设计模式概述"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">设计模式概述</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Beita</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的博客</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link"><span class="toc-number">1.</span> <span class="toc-text"></span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/07/04/Call-API%E5%87%BA%E7%8E%B0peer-not-authenticated/" title="Call API出现peer not authenticated">Call API出现peer not authenticated</a><time datetime="2023-07-03T16:00:00.000Z" title="发表于 2023-07-04 00:00:00">2023-07-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/01/25/JSON-Schema%E6%A1%86%E6%9E%B6%E5%AF%B9%E6%AF%94/" title="JSON Schema框架对比">JSON Schema框架对比</a><time datetime="2023-01-24T16:00:00.000Z" title="发表于 2023-01-25 00:00:00">2023-01-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/12/19/%E5%A4%A7%E6%89%B9%E9%87%8F%E6%95%B0%E6%8D%AE%E5%AF%BC%E5%87%BAExcel/" title="大批量数据导出Excel">大批量数据导出Excel</a><time datetime="2022-12-19T03:26:31.000Z" title="发表于 2022-12-19 11:26:31">2022-12-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/06/26/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E6%A6%82%E8%BF%B0/" title="设计模式概述">设计模式概述</a><time datetime="2021-06-25T16:00:00.000Z" title="发表于 2021-06-26 00:00:00">2021-06-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/03/25/ElasticSearch/" title="ElasticSearch">ElasticSearch</a><time datetime="2021-03-24T16:00:00.000Z" title="发表于 2021-03-25 00:00:00">2021-03-25</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By Beita</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
